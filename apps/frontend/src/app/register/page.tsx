@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react';
 import { trpc } from '../../utils/trpc';
+import { Button } from '@/components/ui/button';
 
 export default function RegisterPage() {
   const register = trpc.auth.register.useMutation();
@@ -41,7 +42,7 @@ export default function RegisterPage() {
           value={form.age}
           onChange={(e) => setForm({ ...form, age: e.target.value })}
         />
-        <button type="submit" disabled={register.isPending}>Register</button>
+        <Button type="submit" disabled={register.isPending}>Register</Button>
       </form>
 
       {register.isError && <p style={{ color: 'red' }}>{register.error.message}</p>}
