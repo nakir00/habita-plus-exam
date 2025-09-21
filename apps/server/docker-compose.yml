@@ -1,0 +1,49 @@
+version: '3.8'  # Version Docker Compose
+
+services:
+
+  db:
+    image: mysql:8.3.0
+    container_name: mysql_nest
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - appnet
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpcon
+    links:
+      - db
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8080:80
+    networks:
+      - appnet
+    depends_on:
+      - db 
+
+networks:
+  appnet:
+    driver: bridge
+
+# Configuration pour votre application Prisma/NestJS :
+# DATABASE_URL="mysql://root@localhost:3306/habita-plus"
+# ou
+# DATABASE_URL="mysql://habitauser@localhost:3306/habita-plus"
+#
+# Accès phpMyAdmin : http://localhost:8080
+# - Serveur : mysql (ou localhost si connexion externe)
+# - Utilisateur : root
+# - Mot de passe : (laisser vide)
+#
+# ⚠️  ATTENTION : Cette configuration est UNIQUEMENT pour le développement !
+# ❌ Ne JAMAIS utiliser en production sans mots de passe !
