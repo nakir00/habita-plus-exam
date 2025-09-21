@@ -15,6 +15,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "migrate": "",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"npm run dev:shared\" \"npm run start:dev --workspace=server\" \"npm run dev --workspace=frontend\"",
     "dev:backend": "cd apps/backend && npm run start:dev",
@@ -23,7 +24,21 @@
     "build:shared": "npm run build --workspace=packages",
     "build:backend": "cd apps/backend && npm run build",
     "build:frontend": "cd apps/frontend && npm run build",
-    "install:all": "npm install && npm run build:shared"
+    "install:all": "npm install && npm run build:shared",
+
+    "db:generate": "cd apps/server && prisma generate",
+    "db:push": "cd apps/server && prisma db push",
+    "db:migrate": "cd apps/server && prisma migrate dev",
+    "db:migrate:deploy": "cd apps/server && prisma migrate deploy",
+    "db:reset": "cd apps/server && prisma migrate reset",
+    "db:studio": "cd apps/server && prisma studio",
+    "db:seed": "cd apps/server && prisma db seed",
+    "db:pull": "cd apps/server && prisma db pull",
+    "db:format": "cd apps/server && prisma format",
+    "db:validate": "cd apps/server && prisma validate",
+    
+    "db:dev": "cd apps/server && npx prisma generate  && npx prisma db push && npx prisma studio ",
+    "db:fresh": "cd apps/server && npx prisma migrate reset && npx prisma generate && npx prisma db push"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
