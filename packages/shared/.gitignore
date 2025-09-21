@@ -3,3 +3,9 @@
 # dependencies
 node_modules
 
+/prisma/generated/
+
+/dist/
+dist/
+/dist
+dist
