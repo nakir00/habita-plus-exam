@@ -1,3 +1,4 @@
 /node_modules
 /package-lock.json
 /packages/*/node_modules
+/apps/server/data
