@@ -1,0 +1,101 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4e54c8, #8f94fb); 
+  padding: 1rem;
+}
+
+/* formulIRE */
+.login-form {
+  background: #fff;
+  padding: 2.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 420px;
+  animation: fadeInUp 0.6s ease-in-out;
+}
+
+/* titre */
+.login-form h2 {
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #4e54c8;
+  text-align: center;
+  font-size: 1.75rem;
+}
+
+/* champs form */
+.login-form .form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.login-form .form-control {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ced4da;
+  background-color: #f9f9f9;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-form .form-control:focus {
+  border-color: #4e54c8;
+  box-shadow: 0 0 10px rgba(78, 84, 200, 0.25);
+  background-color: #fff;
+  outline: none;
+}
+
+/*les bouttons */
+.login-form .btn-primary {
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  font-weight: bold;
+  font-size: 1rem;
+  background-color: #4e54c8;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.login-form .btn-primary:hover {
+  background-color: #3b40b0;
+}
+
+
+.login-form .alert {
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+}
+
+
+.login-form p {
+  font-size: 0.95rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.login-form a {
+  text-decoration: none;
+  color: #4e54c8;
+  font-weight: 600;
+}
+
+.login-form a:hover {
+  text-decoration: underline;
+}
+
+/* === ANIMATION === */
+@keyframes fadeInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
