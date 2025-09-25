@@ -23,7 +23,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique @db.VarChar(255)
@@ -33,5 +32,375 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("users")  
+  @@map("users")
+}
+
+// Enums du SQL adapté
+enum Role {
+  proprietaire
+  locataire
+  Admin
+  SuperAdmin
+}
+
+enum TypeChambre {
+  simple
+  appartement
+  maison
+}
+
+enum ModePaiement {
+  virement
+  cash
+  mobile_money
+  autre // Ajouté pour compatibilité avec précédent
+}
+
+enum Periodicite {
+  journalier
+  hebdomadaire
+  mensuel
+}
+
+enum StatutContrat {
+  actif
+  resilie
+  expire // Ajouté pour enrichissement
+}
+
+enum StatutPaiement {
+  paye
+  impaye
+}
+
+enum StatutRendezVous {
+  en_attente
+  confirme
+  annule
+}
+
+enum TypeMedia {
+  photo
+  video
+}
+
+enum TypeProbleme {
+  plomberie
+  electricite
+  autre
+  degradation // Ajouté pour enrichissement
+}
+
+enum ResponsableProbleme {
+  locataire
+  proprietaire
+}
+
+// Enums supplémentaires de l'étendu
+enum TypeAlerte {
+  impaye
+  echeance_contrat
+  litige
+}
+
+enum TypeNotification {
+  info
+  warning
+  success
+  error
+}
+
+enum StatutTache {
+  a_faire
+  en_cours
+  termine
+}
+
+enum PrioriteTache {
+  basse
+  moyenne
+  haute
+}
+
+enum StatutPlainte {
+  ouverte
+  en_cours
+  resolue
+  rejetee
+}
+
+// Modèle Utilisateurs (du SQL, enrichi avec relations étendues)
+model Utilisateurs {
+  id                      Int       @id @default(autoincrement())
+  nomUtilisateur          String?   @map("nom_utilisateur")
+  email                   String?
+  telephone               String?
+  cni                     String? // Gérer chiffrement côté code
+  role                    Role
+  creeLe                  DateTime? @default(now()) @map("cree_le")
+
+  maisons                 Maisons[] // Propriétaire peut avoir des maisons
+  contrats                Contrats[] // Locataire peut avoir des contrats
+  rendezVous              RendezVous[] // Locataire peut avoir des rendez-vous
+  visitesLocataire        Visites[] @relation("VisitesLocataire") // Relation pour les visites en tant que locataire
+  problemes               Problemes[] @relation("SignalePar") // Signalé par utilisateur
+  alertes                 Alertes[]
+  historique              Historique[]
+  notifications           Notifications[]
+  documents               Documents[]
+  messagesEnvoyes         Messages[] @relation("Expediteur")
+  messagesRecus           Messages[] @relation("Destinataire")
+  taches                  Taches[]
+  plaintesLocataire       Plaintes[] @relation("PlaintesLocataire") // Plaintes envoyées par locataire
+
+  @@map("utilisateurs")
+}
+
+// Modèle Maisons (du SQL, enrichi)
+model Maisons {
+  id             Int       @id @default(autoincrement())
+  proprietaireId Int       @map("proprietaire_id")
+  adresse        String?
+  latitude       Float?
+  longitude      Float?
+  description    String?
+  creeLe         DateTime? @default(now()) @map("cree_le")
+
+  proprietaire Utilisateurs @relation(fields: [proprietaireId], references: [id], onDelete: Cascade)
+  chambres     Chambres[]
+
+  @@map("maisons")
+}
+
+// Modèle Chambres (du SQL, enrichi)
+model Chambres {
+  id          Int         @id @default(autoincrement())
+  maisonId    Int         @map("maison_id")
+  titre       String?
+  description String?
+  taille      String? // ex: '12m²'
+  type        TypeChambre
+  meublee     Boolean?
+  salleDeBain Boolean?    @map("salle_de_bain")
+  prix        Float?
+  disponible  Boolean?
+  creeLe      DateTime?   @default(now()) @map("cree_le")
+
+  maison     Maisons      @relation(fields: [maisonId], references: [id], onDelete: Cascade)
+  contrats   Contrats[]
+  rendezVous RendezVous[]
+  medias     Medias[]
+  visites    Visites[]
+
+  @@map("chambres")
+}
+
+// Modèle Contrats (du SQL, enrichi avec champs du précédent)
+model Contrats {
+  id             Int           @id @default(autoincrement())
+  locataireId    Int           @map("locataire_id")
+  chambreId      Int           @map("chambre_id")
+  dateDebut      DateTime?     @map("date_debut")
+  dateFin        DateTime?     @map("date_fin")
+  montantCaution Float?        @map("montant_caution")
+  moisCaution    Int?          @map("mois_caution") // <= 3
+  description    String?
+  modePaiement   ModePaiement  @map("mode_paiement")
+  periodicite    Periodicite
+  statut         StatutContrat
+  creeLe         DateTime?     @default(now()) @map("cree_le")
+
+  locataire Utilisateurs @relation(fields: [locataireId], references: [id], onDelete: Cascade)
+  chambre   Chambres     @relation(fields: [chambreId], references: [id], onDelete: Cascade)
+  paiements Paiements[]
+  documents Documents[] // Ajout étendu
+  plaintes  Plaintes[] // Lien optionnel à contrat pour plaintes
+
+  @@map("contrats")
+}
+
+// Modèle Paiements (du SQL, enrichi)
+model Paiements {
+  id           Int            @id @default(autoincrement())
+  contratId    Int            @map("contrat_id")
+  montant      Float?
+  statut       StatutPaiement
+  dateEcheance DateTime?      @map("date_echeance")
+  datePaiement DateTime?      @map("date_paiement")
+  creeLe       DateTime?      @default(now()) @map("cree_le")
+
+  contrat Contrats @relation(fields: [contratId], references: [id], onDelete: Cascade)
+
+  @@map("paiements")
+}
+
+// Modèle RendezVous (du SQL)
+model RendezVous {
+  id          Int              @id @default(autoincrement())
+  locataireId Int              @map("locataire_id")
+  chambreId   Int              @map("chambre_id")
+  dateHeure   DateTime?        @map("date_heure")
+  statut      StatutRendezVous
+  creeLe      DateTime?        @default(now()) @map("cree_le")
+
+  locataire Utilisateurs @relation(fields: [locataireId], references: [id], onDelete: Cascade)
+  chambre   Chambres     @relation(fields: [chambreId], references: [id], onDelete: Cascade)
+
+  @@map("rendez_vous")
+}
+
+// Modèle Medias (du SQL)
+model Medias {
+  id          Int       @id @default(autoincrement())
+  chambreId   Int       @map("chambre_id")
+  url         String?
+  type        TypeMedia
+  description String?
+  creeLe      DateTime? @default(now()) @map("cree_le")
+
+  chambre Chambres @relation(fields: [chambreId], references: [id], onDelete: Cascade)
+
+  @@map("medias")
+}
+
+// Modèle Problemes (du SQL, enrichi comme Litiges précédent)
+model Problemes {
+  id          Int                 @id @default(autoincrement())
+  signalePar  Int                 @map("signale_par") // utilisateur_id
+  description String?
+  type        TypeProbleme
+  responsable ResponsableProbleme
+  resolu      Boolean?
+  creeLe      DateTime?           @default(now()) @map("cree_le")
+  cout        Float? // Ajout enrichi
+  plainteId   Int? // Relation vers plainte
+
+  signaleParUtilisateur Utilisateurs @relation("SignalePar", fields: [signalePar], references: [id], onDelete: Cascade)
+  plainte               Plaintes?    @relation(fields: [plainteId], references: [id])
+
+  @@map("problemes")
+}
+
+// Tables étendues du précédent schéma, adaptées
+// Modèle Alertes
+model Alertes {
+  id            Int          @id @default(autoincrement())
+  utilisateurId Int
+  utilisateur   Utilisateurs @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  typeAlerte    TypeAlerte
+  message       String
+  dateEnvoi     DateTime     @default(now())
+  lue           Boolean      @default(false)
+
+  @@map("alertes")
+}
+
+// Modèle Historique
+model Historique {
+  id            Int           @id @default(autoincrement())
+  utilisateurId Int?
+  utilisateur   Utilisateurs? @relation(fields: [utilisateurId], references: [id])
+  action        String
+  details       Json?
+  date          DateTime      @default(now())
+
+  @@map("historique")
+}
+
+// Modèle Notifications
+model Notifications {
+  id            Int              @id @default(autoincrement())
+  utilisateurId Int
+  utilisateur   Utilisateurs     @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  titre         String
+  contenu       String
+  type          TypeNotification
+  lu            Boolean          @default(false)
+  dateCreation  DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+// Modèle Documents
+model Documents {
+  id            Int          @id @default(autoincrement())
+  utilisateurId Int
+  utilisateur   Utilisateurs @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  contratId     Int?
+  contrat       Contrats?    @relation(fields: [contratId], references: [id], onDelete: Cascade)
+  typeDocument  String // ex: 'contrat', 'quittance', 'facture'
+  url           String
+  dateUpload    DateTime     @default(now())
+
+  @@map("documents")
+}
+
+// Modèle Visites (adapté à chambres au lieu de biens)
+model Visites {
+  id          Int           @id @default(autoincrement())
+  chambreId   Int
+  chambre     Chambres      @relation(fields: [chambreId], references: [id], onDelete: Cascade)
+  locataireId Int?
+  locataire   Utilisateurs? @relation("VisitesLocataire", fields: [locataireId], references: [id], onDelete: SetNull)
+  dateVisite  DateTime
+  commentaire String?
+  photos      Json? // Liens vers médias (JSON array)
+
+  @@map("visites")
+}
+
+// Modèle ParametresSysteme
+model ParametresSysteme {
+  id          Int     @id @default(autoincrement())
+  cle         String  @unique
+  valeur      Json
+  description String?
+
+  @@map("parametres_systeme")
+}
+
+// Modèle Messages
+model Messages {
+  id             Int          @id @default(autoincrement())
+  expediteurId   Int
+  expediteur     Utilisateurs @relation("Expediteur", fields: [expediteurId], references: [id], onDelete: Cascade)
+  destinataireId Int
+  destinataire   Utilisateurs @relation("Destinataire", fields: [destinataireId], references: [id], onDelete: Cascade)
+  contenu        String
+  lu             Boolean      @default(false)
+  date           DateTime     @default(now())
+
+  @@map("messages")
+}
+
+// Modèle Taches
+model Taches {
+  id            Int           @id @default(autoincrement())
+  utilisateurId Int
+  utilisateur   Utilisateurs  @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  titre         String
+  description   String?
+  statut        StatutTache   @default(a_faire)
+  priorite      PrioriteTache @default(moyenne)
+  dateCreation  DateTime      @default(now())
+  dateEcheance  DateTime?
+
+  @@map("taches")
+}
+
+// Modèle Plaintes (adapté : locataire → proprietaire, lien à contrat/chambre)
+model Plaintes {
+  id             Int           @id @default(autoincrement())
+  creeParId    Int
+  creePar      Utilisateurs  @relation("PlaintesLocataire", fields: [creeParId], references: [id], onDelete: Cascade) // Expéditeur (locataire)
+  contratId      Int? // Optionnel
+  contrat        Contrats?     @relation(fields: [contratId], references: [id], onDelete: SetNull)
+  problemes      Problemes[]    
+  description    String
+  statut         StatutPlainte @default(ouverte)
+  dateCreation   DateTime      @default(now())
+  dateResolution DateTime?
+  piecesJointes  Json? // JSON array pour URLs
+
+  @@map("plaintes")
 }
