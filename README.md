@@ -163,7 +163,7 @@ Ce projet est sous licence MIT. Consultez le fichier [LICENSE](LICENSE) pour plu
 
 ## Membres de groupes
 
-- Mamodou BARRY
+- Mamoudou BARRY
 - Omar DIOUF
 - Mustapha MBAYE
 - Mouhamed Naby MBAYE
